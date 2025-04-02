@@ -34,19 +34,19 @@ class Room extends Model
         return $this->belongsTo(Property::class, 'property_id', 'id_property');
     }
 
-    // /**
-    //  * Get all the room reservation details for the room.
-    //  */
-    // public function roomReservationDetails(): HasMany
-    // {
-    //     return $this->hasMany(RoomReservationDetail::class, 'room_id', 'id_room');
-    // }
+    /**
+     * Get all the room reservation details for the room.
+     */
+    public function roomReservationDetails(): HasMany
+    {
+        return $this->hasMany(RoomReservationDetail::class, 'room_id', 'id_room');
+    }
 
-    // /**
-    //  * Get all the images for the room.
-    //  */
-    // public function images(): HasMany
-    // {
-    //     return $this->hasMany(Image::class, 'room_id', 'id_room');
-    // }
+    /**
+     * Get all the images for the room.
+     */
+    public function images(): HasMany
+    {
+        return $this->hasMany(Image::class, 'room_id', 'id_room');
+    }
 }

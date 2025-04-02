@@ -42,7 +42,6 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $hidden = [
         'password',
-        'remember_token',
     ];
 
     /**
@@ -51,8 +50,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'is_verified' => 'boolean',
     ];
 
     /**
@@ -63,27 +61,28 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Role::class, 'role_id', 'id_role');
     }
 
-    // /**
-    //  * Get all the property managers associated with the user.
-    //  */
-    // public function propertyManagers(): HasMany
-    // {
-    //     return $this->hasMany(PropertyManager::class, 'user_id', 'id_user');
-    // }
+    /**
+     * Get all the property managers associated with the user.
+     */
+    public function propertyManagers(): HasMany
+    {
+        return $this->hasMany(PropertyManager::class, 'user_id', 'id_user');
+    }
 
-    // /**
-    //  * Get all the reservations where the user is the customer.
-    //  */
-    // public function customerReservations(): HasMany
-    // {
-    //     return $this->hasMany(Reservation::class, 'customer_id', 'id_user');
-    // }
+    /**
+     * Get all the reservations where the user is the customer.
+     */
+    public function customerReservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class, 'customer_id', 'id_user');
+    }
 
-    // /**
-    //  * Get all the reservations where the user is the admin.
-    //  */
-    // public function adminReservations(): HasMany
-    // {
-    //     return $this->hasMany(Reservation::class, 'admin_id', 'id_user');
-    // }
+    /**
+     * Get all the reservations where the user is the admin.
+     */
+    public function adminReservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class, 'admin_id', 'id_user');
+    }
+
 }

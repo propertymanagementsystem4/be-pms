@@ -34,29 +34,29 @@ class Property extends Model
         return $this->hasMany(Facility::class, 'property_id', 'id_property');
     }
 
-    // /**
-    //  * Get all the property managers for the property.
-    //  */
-    // public function propertyManagers(): HasMany
-    // {
-    //     return $this->hasMany(PropertyManager::class, 'property_id', 'id_property');
-    // }
+    /**
+     * Get all the property managers for the property.
+     */
+    public function propertyManagers(): HasMany
+    {
+        return $this->hasMany(PropertyManager::class, 'property_id', 'id_property');
+    }
 
-    // /**
-    //  * Get all the reservations for the property.
-    //  */
-    // public function reservations(): HasMany
-    // {
-    //     return $this->hasMany(Reservation::class, 'property_id', 'id_property');
-    // }
+    /**
+     * Get all the reservations for the property.
+     */
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class, 'property_id', 'id_property');
+    }
 
-    // /**
-    //  * Get all the revenues for the property.
-    //  */
-    // public function revenues(): HasMany
-    // {
-    //     return $this->hasMany(Revenue::class, 'property_id', 'id_property');
-    // }
+    /**
+     * Get all the revenues for the property.
+     */
+    public function revenues(): HasMany
+    {
+        return $this->hasMany(Revenue::class, 'property_id', 'id_property');
+    }
 
     /**
      * Get all the rooms for the property.

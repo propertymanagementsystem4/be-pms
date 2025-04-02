@@ -15,14 +15,13 @@ return new class extends Migration
             $table->uuid('id_image')->primary();
             $table->uuid('property_id')->nullable();
             $table->uuid('room_id')->nullable();
-            $table->string('img_url');
             $table->uuid('reservation_id')->nullable();
+            $table->string('img_url');
             $table->timestamps();
 
             $table->foreign('room_id')->references('id_room')->on('Room')->onDelete('set null')->onUpdate('cascade');
             $table->foreign('property_id')->references('id_property')->on('Property')->onDelete('cascade')->onUpdate('cascade');
-            // You might want to add a foreign key constraint for reservation_id if it's consistently referencing Reservation
-            // $table->foreign('reservation_id')->references('id_reservation')->on('Reservation')->onDelete('set null')->onUpdate('cascade');
+            $table->foreign('reservation_id')->references('id_reservation')->on('Reservation')->onDelete('set null')->onUpdate('cascade');
         });
     }
 

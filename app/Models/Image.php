@@ -19,8 +19,8 @@ class Image extends Model
         'id_image',
         'property_id',
         'room_id',
-        'img_url',
         'reservation_id',
+        'img_url',
     ];
 
     /**
@@ -39,11 +39,11 @@ class Image extends Model
         return $this->belongsTo(Room::class, 'room_id', 'id_room');
     }
 
-    // /**
-    //  * Get the reservation that owns the Image (if applicable).
-    //  */
-    // public function reservation(): BelongsTo
-    // {
-    //     return $this->belongsTo(Reservation::class, 'reservation_id', 'id_reservation');
-    // }
+    /**
+     * Get the reservation that owns the Image (if applicable).
+     */
+    public function reservation(): BelongsTo
+    {
+        return $this->belongsTo(Reservation::class, 'reservation_id', 'id_reservation');
+    }
 }

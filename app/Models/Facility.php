@@ -33,11 +33,11 @@ class Facility extends Model
         return $this->belongsTo(Property::class, 'property_id', 'id_property');
     }
 
-    // /**
-    //  * Get all the facility reservation details for the facility.
-    //  */
-    // public function facilityReservationDetails(): HasMany
-    // {
-    //     return $this->hasMany(FacilityReservationDetail::class, 'facility_id', 'id_facility');
-    // }
+    /**
+     * Get all the facility reservation details for the facility.
+     */
+    public function facilityReservationDetails(): HasMany
+    {
+        return $this->hasMany(FacilityReservationDetail::class, 'facility_id', 'id_facility');
+    }
 }
