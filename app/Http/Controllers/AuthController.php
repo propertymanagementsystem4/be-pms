@@ -37,6 +37,8 @@ class AuthController extends Controller
                 'is_verified' => false,
             ]);
 
+            $user->sendEmailVerificationNotification();
+
             $responseData = [
                 'email' => $user->email,
                 'fullname' => $user->fullname,
@@ -44,10 +46,54 @@ class AuthController extends Controller
                 'role' => $user->role->name,
             ];
 
-            return $this->successResponse(201, $responseData, 'Registration successful. Please verify your email.');
+            return $this->successResponse(201, $responseData, 'Registration successful. Please check your email to verify your account.');
         } catch (\Exception $e) {
             Log::error('Registration Failed: ' . $e->getMessage());
             return $this->internalErrorResponse('Registration failed');
+        }
+    }
+
+    public function verifyEmail(HttpRequest $request, $id)
+    {
+        try {
+            if (!$request->hasValidSignature()) {
+                return $this->badRequestResponse(400, 'Invalid or expired link.');
+            }
+        
+            $user = User::findOrFail($id);
+        
+            if ($user->is_verified) {
+                return $this->badRequestResponse(400, 'Email already verified.');
+            }
+        
+            $user->markEmailAsVerified();
+
+            return $this->successResponse(200, null, 'Email verified successfully.');
+        } catch (\Exception $e) {
+            Log::error('Email Verification Error: ' . $e->getMessage());
+            return $this->internalErrorResponse('Email verification failed');
+        }
+    }
+
+    public function resendVerificationEmail(HttpRequest $request)
+    {
+        try {
+            $user = User::where('email', $request->email)->first();
+
+            if (!$user) {
+                return $this->badRequestResponse(404, 'User not found.');
+            }
+
+            if ($user->is_verified) {
+                return $this->badRequestResponse(400, 'Email already verified.');
+            }
+
+            $user->sendEmailVerificationNotification();
+
+            return $this->successResponse(200, null, 'Verification email resent successfully.');
+        } catch (\Exception $e) {
+            Log::error('Resend Verification Email Error: ' . $e->getMessage());
+            return $this->internalErrorResponse('Failed to resend verification email');
         }
     }
 

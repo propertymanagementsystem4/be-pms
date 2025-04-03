@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Notifications\VerifyEmailNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -83,6 +86,31 @@ class User extends Authenticatable implements MustVerifyEmail
     public function adminReservations(): HasMany
     {
         return $this->hasMany(Reservation::class, 'admin_id', 'id_user');
+    }
+
+    // Override Laravel's default method to check if the user has verified their email
+    public function hasVerifiedEmail()
+    {
+        return (bool) $this->is_verified;
+    }
+
+    public function markEmailAsVerified()
+    {
+        $this->is_verified = true;
+        $this->save();
+    }
+
+    public function sendEmailVerificationNotification()
+    {
+        $verifyUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),
+            ['id' => $this->id_user]
+        );
+
+        Log::info('Verification URL: ' . $verifyUrl);
+
+        $this->notify(new VerifyEmailNotification($verifyUrl));
     }
 
 }
