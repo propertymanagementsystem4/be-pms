@@ -13,3 +13,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
+Route::middleware(['auth:sanctum', 'role:ALL'])->group(function () {
+    
+});
+
+Route::middleware(['auth:sanctum', 'role:OWNER'])->group(function () {
+    
+});
+
+Route::middleware(['auth:sanctum', 'role:ADMIN'])->group(function () {
+    
+});
+
+Route::middleware(['auth:sanctum', 'role:CUSTOMER'])->group(function () {
+    
+});
+
