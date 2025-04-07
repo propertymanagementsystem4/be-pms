@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Type;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Validation\Rule;
 
-class TypeRequest extends FormRequest
+class UpdateTypeRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,16 +24,16 @@ class TypeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'property_id' => 'required|uuid|exists:Property,id_property',
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('Type')->where(function ($query) {
-                    return $query->where('property_id', $this->property_id);
-                })
-            ],
-            'price_per_night' => 'required|numeric|min:0',
+            'name' => 'sometimes|string|max:255',
+            'price_per_night' => 'sometimes|numeric|min:0',
+        ];
+    }
+
+    public function attributes()
+    {
+        return [
+            'property_id' => 'Property ID',
+            'types.*.price_per_night' => 'price per night',
         ];
     }
 

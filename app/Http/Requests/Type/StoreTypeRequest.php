@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Property;
+namespace App\Http\Requests\Type;
 
-use App\Http\Requests\TypeRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
-class StorePropertyRequest extends FormRequest
+class StoreTypeRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,14 +25,9 @@ class StorePropertyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'location' => 'required|string|max:255',
-            'city' => 'required|string|max:100',
-            'province' => 'required|string|max:100',
+            'property_id' => 'required|uuid|exists:Property,id_property',
             'types' => 'required|array|min:1',
-            // 'types.*.property_id' => $typeRules['property_id'],
-            'types.*.name' => 'required|string|distinct|max:255',
+            'types.*.name' => 'required|string|distinct|unique:Type,name|max:255',
             'types.*.price_per_night' => 'required|numeric|min:0',
         ];
     }
@@ -40,8 +35,7 @@ class StorePropertyRequest extends FormRequest
     public function attributes()
     {
         return [
-            'total_rooms' => 'total rooms',
-            // 'types.*.property_id' => 'type property id',
+            'property_id' => 'Property ID',
             'types.*.name' => 'type name',
             'types.*.price_per_night' => 'type price per night',
         ];
