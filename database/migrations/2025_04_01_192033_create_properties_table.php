@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('Property', function (Blueprint $table) {
             $table->uuid('id_property')->primary();
             $table->string('name');
-            $table->string('description');
+            $table->longText('description', 1000);
             $table->string('location');
             $table->integer('total_rooms');
             $table->string('property_code')->unique();

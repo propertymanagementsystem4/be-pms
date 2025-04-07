@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('Type', function (Blueprint $table) {
             $table->uuid('id_type')->primary();
+            $table->uuid('property_id');
             $table->string('name');
             $table->float('price_per_night');
             $table->timestamps();
+
+            $table->foreign('property_id')->references('id_property')->on('Property')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

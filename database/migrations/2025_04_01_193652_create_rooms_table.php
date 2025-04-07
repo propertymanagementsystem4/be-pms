@@ -14,16 +14,12 @@ return new class extends Migration
         Schema::create('Room', function (Blueprint $table) {
             $table->uuid('id_room')->primary();
             $table->uuid('type_id');
-            $table->uuid('property_id');
             $table->string('name');
             $table->string('description');
-            $table->string('type');
-            $table->double('price_per_night');
             $table->string('room_code')->unique();
             $table->timestamps();
 
             $table->foreign('type_id')->references('id_type')->on('Type')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreign('property_id')->references('id_property')->on('Property')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

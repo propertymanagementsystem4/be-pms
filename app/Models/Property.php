@@ -59,11 +59,11 @@ class Property extends Model
     }
 
     /**
-     * Get all the rooms for the property.
+     * Get all the types for the property.
      */
-    public function rooms(): HasMany
+    public function types(): HasMany
     {
-        return $this->hasMany(Room::class, 'property_id', 'id_property');
+        return $this->hasMany(Type::class, 'property_id', 'id_property');
     }
 
     /**

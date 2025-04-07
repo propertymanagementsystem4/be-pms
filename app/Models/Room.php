@@ -19,11 +19,8 @@ class Room extends Model
     protected $fillable = [
         'id_room',
         'type_id',
-        'property_id',
         'name',
         'description',
-        'type',
-        'price_per_night',
         'room_code',
     ];
     
@@ -33,14 +30,6 @@ class Room extends Model
     public function type(): BelongsTo
     {
         return $this->belongsTo(Type::class, 'type_id', 'id_type');
-    }
-
-    /**
-     * Get the property that owns the Room.
-     */
-    public function property(): BelongsTo
-    {
-        return $this->belongsTo(Property::class, 'property_id', 'id_property');
     }
 
     /**
