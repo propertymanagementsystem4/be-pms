@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,7 +19,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/update/{id}', [UserController::class, 'updateProfile']);
     });
     
-
 });
 
 Route::middleware(['auth:sanctum', 'role:ALL'])->group(function () {
@@ -26,11 +26,28 @@ Route::middleware(['auth:sanctum', 'role:ALL'])->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'role:OWNER'])->group(function () {
+    Route::prefix('/property-owner')->group(function () {
+        Route::get('/list', [PropertyController::class, 'getAllProperty']);
+        Route::post('/create', [PropertyController::class, 'storeProperty']);
+        Route::get('/detail/{id}', [PropertyController::class, 'getDetailProperty']);
+        Route::put('/update/{id}', [PropertyController::class, 'updateProperty']);
+        Route::delete('/delete', [PropertyController::class, 'destroyProperty']);
+        Route::get('/search', [PropertyController::class, 'searchProperty']);
+        Route::post('/assign-admin', [PropertyController::class, 'assignAdminToProperty']);
+        Route::delete('/remove-admin', [PropertyController::class, 'deleteAdminFromProperty']);
+    });
     
 });
 
 Route::middleware(['auth:sanctum', 'role:ADMIN'])->group(function () {
-    
+    Route::prefix('/property-admin')->group(function () {
+        Route::get('/list/{adminId}', [PropertyController::class, 'getAllPropertyManageByAdmin']);
+        Route::get('/detail/{adminId}/{propertyId}', [PropertyController::class, 'getDetailPropertyManageByAdmin']);
+        Route::get('/detail/by-code/{adminId}/{code}', [PropertyController::class, 'getDetailPropertyByCodeManagedByAdmin']);
+        Route::put('/update/{adminId}/{propertyId}', [PropertyController::class, 'updatePropertyManageByAdmin']);
+        Route::get('/search/{adminId}', [PropertyController::class, 'searchPropertyManagedByAdmin']);
+    });
+
 });
 
 Route::middleware(['auth:sanctum', 'role:CUSTOMER'])->group(function () {
