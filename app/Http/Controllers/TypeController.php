@@ -53,8 +53,8 @@ class TypeController extends Controller
     
             return $this->successResponse(201, $storedTypes, 'Type created successfully');
         } catch (\Exception $e) {
-            Log::error('Failed to check type name: ' . $e->getMessage());
-            return $this->internalErrorResponse('Failed to check type name');
+            Log::error('Failed to create type: ' . $e->getMessage());
+            return $this->internalErrorResponse('Failed to create type');
         }
     }
 
@@ -72,8 +72,8 @@ class TypeController extends Controller
 
             return $this->successResponse(200, $type, 'Type retrieved successfully');
         } catch (\Exception $e) {
-            Log::error('Failed to check type ID: ' . $e->getMessage());
-            return $this->internalErrorResponse('Failed to check type ID');
+            Log::error('Failed to retrieve type: ' . $e->getMessage());
+            return $this->internalErrorResponse('Failed to retrieve type');
         }
     }
 
@@ -92,8 +92,8 @@ class TypeController extends Controller
             $type->update($request->validated());
             return $this->successResponse(200, $type, 'Type updated successfully');
         } catch (\Exception $e) {
-            Log::error('Failed to check type ID: ' . $e->getMessage());
-            return $this->internalErrorResponse('Failed to check type ID');
+            Log::error('Failed to update type: ' . $e->getMessage());
+            return $this->internalErrorResponse('Failed to update type');
         }
     }
 
@@ -112,8 +112,8 @@ class TypeController extends Controller
             $type->delete();
             return $this->successResponse(200, null, 'Type deleted successfully');
         } catch (\Exception $e) {
-            Log::error('Failed to check type ID: ' . $e->getMessage());
-            return $this->internalErrorResponse('Failed to check type ID');
+            Log::error('Failed to delete type: ' . $e->getMessage());
+            return $this->internalErrorResponse('Failed to delete type');
         }
     }
 

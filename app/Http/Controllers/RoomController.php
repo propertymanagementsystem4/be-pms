@@ -16,7 +16,7 @@ class RoomController extends Controller
 {
     use ApiResponse;
 
-    public function getroomByPropertyId($propertyId)
+    public function getRoomByPropertyId($propertyId)
     {
         try {
             if (!Str::isUuid($propertyId)) {
