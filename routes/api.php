@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\RoomController;
 use App\Http\Controllers\TypeController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -34,6 +35,15 @@ Route::middleware(['auth:sanctum', 'role:OWNER|ADMIN'])->group(function () {
         Route::put('/update/{id}', [TypeController::class, 'updateType']);
         Route::delete('/delete/{id}', [TypeController::class, 'destroyType']);
         Route::get('/search/{propertyId}', [TypeController::class, 'searchType']);
+    });
+
+    Route::prefix('/room')->group(function () {
+        Route::get('/list/{propertyId}', [RoomController::class, 'getRoomByPropertyId']);
+        Route::post('/create', [RoomController::class, 'storeRoom']);
+        Route::get('/detail/{id}', [RoomController::class, 'getDetailRoom']);
+        Route::put('/update/{id}', [RoomController::class, 'updateRoom']);
+        Route::delete('/delete/{id}', [RoomController::class, 'destroyRoom']);
+        Route::get('/search/{propertyId}', [RoomController::class, 'searchRoom']);
     });
 });
 
