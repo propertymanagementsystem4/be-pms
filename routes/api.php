@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\TypeController;
@@ -44,6 +45,16 @@ Route::middleware(['auth:sanctum', 'role:OWNER|ADMIN'])->group(function () {
         Route::put('/update/{id}', [RoomController::class, 'updateRoom']);
         Route::delete('/delete/{id}', [RoomController::class, 'destroyRoom']);
         Route::get('/search/{propertyId}', [RoomController::class, 'searchRoom']);
+    });
+
+    Route::prefix('/facility')->group(function () {
+        Route::get('/list', [FacilityController::class, 'getAllFacility']);
+        Route::get('/list/{propertyId}', [FacilityController::class, 'getFacilityByPropertyId']);
+        Route::post('/create', [FacilityController::class, 'storeFacility']);
+        Route::get('/detail/{id}', [FacilityController::class, 'getDetailFacility']);
+        Route::put('/update/{id}', [FacilityController::class, 'updateFacility']);
+        Route::delete('/delete/{id}', [FacilityController::class, 'destroyFacility']);
+        Route::get('/search/{propertyId}', [FacilityController::class, 'searchFacility']);
     });
 });
 

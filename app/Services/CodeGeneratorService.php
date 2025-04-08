@@ -20,4 +20,12 @@ class CodeGeneratorService
         return "{$propertyCode}-RM{$random}{$timestamp}";
     }
 
+    public static function generateFacilityCode(string $propertyCode): string
+    {
+        $random = str_pad(random_int(0, 999), 3, '0', STR_PAD_LEFT);
+        $timestamp = substr((string) now()->getTimestampMs(), -2); // Get last 2 digits
+
+        return "{$propertyCode}-FAC{$random}{$timestamp}";
+    }
+
 }
