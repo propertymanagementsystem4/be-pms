@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\PropertyController;
@@ -68,6 +69,13 @@ Route::middleware(['auth:sanctum', 'role:OWNER'])->group(function () {
         Route::get('/search', [PropertyController::class, 'searchProperty']);
         Route::post('/assign-admin', [PropertyController::class, 'assignAdminToProperty']);
         Route::delete('/remove-admin', [PropertyController::class, 'deleteAdminFromProperty']);
+    });
+
+    Route::prefix('/admin')->group(function () {
+        Route::get('/list', [AdminController::class, 'getAllAdmin']);
+        Route::get('/list/{propertyId}', [AdminController::class, 'getAdminByPropertyId']);
+        Route::post('/create', [AdminController::class, 'storeAdmin']);
+        Route::delete('/delete/{id}', [AdminController::class, 'destroyAdmin']);
     });
     
 });
