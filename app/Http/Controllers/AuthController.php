@@ -60,7 +60,7 @@ class AuthController extends Controller
                 return $this->badRequestResponse(400, 'Invalid or expired link.');
             }
         
-            $user = User::findOrFail($id);
+            $user = User::find($id);
         
             if ($user->is_verified) {
                 return $this->badRequestResponse(400, 'Email already verified.');
@@ -123,6 +123,7 @@ class AuthController extends Controller
             $responseData = [
                 'token' => $token,
                 'user' => [
+                    'id' => $user->id_user,
                     'email' => $user->email,
                     'fullname' => $user->fullname,
                     'phone_number' => $user->phone_number,

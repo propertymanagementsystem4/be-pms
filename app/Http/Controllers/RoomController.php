@@ -96,7 +96,7 @@ class RoomController extends Controller
                 return $this->badRequestResponse(400, 'Invalid room ID format');
             }
 
-            $room = Room::findOrFail($id);
+            $room = Room::find($id);
             if (!$room) {
                 return $this->notFoundResponse('Room not found');
             }

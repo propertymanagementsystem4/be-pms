@@ -102,7 +102,7 @@ class FacilityController extends Controller
                 return $this->badRequestResponse(400, 'Invalid facility ID format');
             }
 
-            $facility = Facility::findOrFail($id);
+            $facility = Facility::find($id);
             if (!$facility) {
                 return $this->notFoundResponse('Facility not found');
             }

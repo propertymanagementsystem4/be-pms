@@ -84,7 +84,7 @@ class TypeController extends Controller
                 return $this->badRequestResponse(400, 'Invalid type ID format');
             }
 
-            $type = Type::findOrFail($id);
+            $type = Type::find($id);
             if (!$type) {
                 return $this->notFoundResponse('Type not found');
             }
