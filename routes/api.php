@@ -10,103 +10,106 @@ use App\Http\Controllers\TypeController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::get('/email/verify/{id}', [AuthController::class, 'verifyEmail'])
-    ->name('verification.verify');
-Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::controller(AuthController::class)->group(function () {
+    Route::post('/register', 'register');
+    Route::get('/email/verify/{id}', 'verifyEmail')
+        ->name('verification.verify');
+    Route::post('/email/resend', 'resendVerificationEmail');
+    Route::post('/login', 'login');
+});
 
+// ROUTE ALL ROLE
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    Route::prefix('/profile')->group(function () {
-        Route::get('/', [UserController::class, 'getProfile']);
-        Route::put('/update/{id}', [UserController::class, 'updateProfile']);
+    Route::prefix('/profile')->controller(UserController::class)->group(function () {
+        Route::get('/', 'getProfile');
+        Route::put('/update/{id}', 'updateProfile');
     });
     
 });
 
-Route::middleware(['auth:sanctum', 'role:ALL'])->group(function () {
-    
-});
-
+// ROUTE OWNER AND ADMIN
 Route::middleware(['auth:sanctum', 'role:OWNER|ADMIN'])->group(function () {
-    Route::prefix('/type')->group(function () {
-        Route::get('/list/{propertyId}', [TypeController::class, 'getTypeByPropertyId']);
-        Route::post('/create', [TypeController::class, 'storeType']);
-        Route::get('/detail/{id}', [TypeController::class, 'getDetailType']);
-        Route::put('/update/{id}', [TypeController::class, 'updateType']);
-        Route::delete('/delete/{id}', [TypeController::class, 'destroyType']);
-        Route::get('/search/{propertyId}', [TypeController::class, 'searchType']);
+    Route::prefix('/type')->controller(TypeController::class)->group(function () {
+        Route::get('/list/{propertyId}', 'getTypeByPropertyId');
+        Route::post('/create', 'storeType');
+        Route::get('/detail/{id}', 'getDetailType');
+        Route::put('/update/{id}', 'updateType');
+        Route::delete('/delete/{id}', 'destroyType');
+        Route::get('/search/{propertyId}', 'searchType');
     });
 
-    Route::prefix('/room')->group(function () {
-        Route::get('/list/{propertyId}', [RoomController::class, 'getRoomByPropertyId']);
-        Route::post('/create', [RoomController::class, 'storeRoom']);
-        Route::get('/detail/{id}', [RoomController::class, 'getDetailRoom']);
-        Route::put('/update/{id}', [RoomController::class, 'updateRoom']);
-        Route::delete('/delete/{id}', [RoomController::class, 'destroyRoom']);
-        Route::get('/search/{propertyId}', [RoomController::class, 'searchRoom']);
+    Route::prefix('/room')->controller(RoomController::class)->group(function () {
+        Route::get('/list/{propertyId}', 'getRoomByPropertyId');
+        Route::post('/create', 'storeRoom');
+        Route::get('/detail/{id}', 'getDetailRoom');
+        Route::put('/update/{id}', 'updateRoom');
+        Route::delete('/delete/{id}', 'destroyRoom');
+        Route::get('/search/{propertyId}', 'searchRoom');
     });
 
-    Route::prefix('/facility')->group(function () {
-        Route::get('/list', [FacilityController::class, 'getAllFacility']);
-        Route::get('/list/{propertyId}', [FacilityController::class, 'getFacilityByPropertyId']);
-        Route::post('/create', [FacilityController::class, 'storeFacility']);
-        Route::get('/detail/{id}', [FacilityController::class, 'getDetailFacility']);
-        Route::put('/update/{id}', [FacilityController::class, 'updateFacility']);
-        Route::delete('/delete/{id}', [FacilityController::class, 'destroyFacility']);
-        Route::get('/search/{propertyId}', [FacilityController::class, 'searchFacility']);
+    Route::prefix('/facility')->controller(FacilityController::class)->group(function () {
+        Route::get('/list', 'getAllFacility');
+        Route::get('/list/{propertyId}', 'getFacilityByPropertyId');
+        Route::post('/create', 'storeFacility');
+        Route::get('/detail/{id}', 'getDetailFacility');
+        Route::put('/update/{id}', 'updateFacility');
+        Route::delete('/delete/{id}', 'destroyFacility');
+        Route::get('/search/{propertyId}', 'searchFacility');
     });
 });
 
+// ROUTE OWNER ONLY
 Route::middleware(['auth:sanctum', 'role:OWNER'])->group(function () {
-    Route::prefix('/property-owner')->group(function () {
-        Route::get('/list', [PropertyController::class, 'getAllProperty']);
-        Route::post('/create', [PropertyController::class, 'storeProperty']);
-        Route::get('/detail/{id}', [PropertyController::class, 'getDetailProperty']);
-        Route::put('/update/{id}', [PropertyController::class, 'updateProperty']);
-        Route::delete('/delete', [PropertyController::class, 'destroyProperty']);
-        Route::get('/search', [PropertyController::class, 'searchProperty']);
-        Route::post('/assign-admin', [PropertyController::class, 'assignAdminToProperty']);
-        Route::delete('/remove-admin', [PropertyController::class, 'deleteAdminFromProperty']);
+    Route::prefix('/property-owner')->controller(PropertyController::class)->group(function () {
+        Route::get('/list', 'getAllProperty');
+        Route::post('/create', 'storeProperty');
+        Route::get('/detail/{id}', 'getDetailProperty');
+        Route::put('/update/{id}', 'updateProperty');
+        Route::delete('/delete', 'destroyProperty');
+        Route::get('/search', 'searchProperty');
+        Route::post('/assign-admin', 'assignAdminToProperty');
+        Route::delete('/remove-admin', 'deleteAdminFromProperty');
     });
 
-    Route::prefix('/admin')->group(function () {
-        Route::get('/list', [AdminController::class, 'getAllAdmin']);
-        Route::get('/list/{propertyId}', [AdminController::class, 'getAdminByPropertyId']);
-        Route::post('/create', [AdminController::class, 'storeAdmin']);
-        Route::delete('/delete/{id}', [AdminController::class, 'destroyAdmin']);
+    Route::prefix('/admin')->controller(AdminController::class)->group(function () {
+        Route::get('/list', 'getAllAdmin');
+        Route::get('/list/{propertyId}', 'getAdminByPropertyId');
+        Route::post('/create', 'storeAdmin');
+        Route::delete('/delete/{id}', 'destroyAdmin');
     });
 
-    Route::prefix('/menu')->group(function () {
-        Route::get('/list', [MenuController::class, 'getAllMenu']);
-        Route::get('/list-by-role', [MenuController::class, 'getMenuByRoleId']);
-        Route::post('/create', [MenuController::class, 'storeMenu']);
-        Route::get('/detail/{id}', [MenuController::class, 'getMenuById']);
-        Route::put('/update/{id}', [MenuController::class, 'updateMenu']);
-        Route::delete('/delete/{id}', [MenuController::class, 'destroyMenu']);
+    Route::prefix('/menu')->controller(MenuController::class)->group(function () {
+        Route::get('/list', 'getAllMenu');
+        Route::get('/list-by-role', 'getMenuByRoleId');
+        Route::post('/create', 'storeMenu');
+        Route::get('/detail/{id}', 'getMenuById');
+        Route::put('/update/{id}', 'updateMenu');
+        Route::delete('/delete/{id}', 'destroyMenu');
     });
 
-    Route::prefix('/menu/submenu')->group(function () {
-        Route::post('/create', [MenuController::class, 'storeSubmenu']);
-        Route::put('/update/{id}', [MenuController::class, 'updateSubmenu']);
-        Route::delete('/delete/{id}', [MenuController::class, 'destroySubmenu']);
+    Route::prefix('/menu/submenu')->controller(MenuController::class)->group(function () {
+        Route::post('/create', 'storeSubmenu');
+        Route::put('/update/{id}', 'updateSubmenu');
+        Route::delete('/delete/{id}', 'destroySubmenu');
     });
     
 });
 
+// ROUTE ADMIN ONLY
 Route::middleware(['auth:sanctum', 'role:ADMIN'])->group(function () {
-    Route::prefix('/property-admin')->group(function () {
-        Route::get('/list/{adminId}', [PropertyController::class, 'getAllPropertyManageByAdmin']);
-        Route::get('/detail/{adminId}/{propertyId}', [PropertyController::class, 'getDetailPropertyManageByAdmin']);
-        Route::get('/detail/by-code/{adminId}/{code}', [PropertyController::class, 'getDetailPropertyByCodeManagedByAdmin']);
-        Route::put('/update/{adminId}/{propertyId}', [PropertyController::class, 'updatePropertyManageByAdmin']);
-        Route::get('/search/{adminId}', [PropertyController::class, 'searchPropertyManagedByAdmin']);
+    Route::prefix('/property-admin')->controller(PropertyController::class)->group(function () {
+        Route::get('/list/{adminId}', 'getAllPropertyManageByAdmin');
+        Route::get('/detail/{adminId}/{propertyId}', 'getDetailPropertyManageByAdmin');
+        Route::get('/detail/by-code/{adminId}/{code}', 'getDetailPropertyByCodeManagedByAdmin');
+        Route::put('/update/{adminId}/{propertyId}', 'updatePropertyManageByAdmin');
+        Route::get('/search/{adminId}', 'searchPropertyManagedByAdmin');
     });
 
 });
 
+// ROUTE CUSTOMER ONLY
 Route::middleware(['auth:sanctum', 'role:CUSTOMER'])->group(function () {
     
 });
