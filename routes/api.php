@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FacilityController;
+use App\Http\Controllers\MenuController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\TypeController;
@@ -76,6 +77,21 @@ Route::middleware(['auth:sanctum', 'role:OWNER'])->group(function () {
         Route::get('/list/{propertyId}', [AdminController::class, 'getAdminByPropertyId']);
         Route::post('/create', [AdminController::class, 'storeAdmin']);
         Route::delete('/delete/{id}', [AdminController::class, 'destroyAdmin']);
+    });
+
+    Route::prefix('/menu')->group(function () {
+        Route::get('/list', [MenuController::class, 'getAllMenu']);
+        Route::get('/list-by-role', [MenuController::class, 'getMenuByRoleId']);
+        Route::post('/create', [MenuController::class, 'storeMenu']);
+        Route::get('/detail/{id}', [MenuController::class, 'getMenuById']);
+        Route::put('/update/{id}', [MenuController::class, 'updateMenu']);
+        Route::delete('/delete/{id}', [MenuController::class, 'destroyMenu']);
+    });
+
+    Route::prefix('/menu/submenu')->group(function () {
+        Route::post('/create', [MenuController::class, 'storeSubmenu']);
+        Route::put('/update/{id}', [MenuController::class, 'updateSubmenu']);
+        Route::delete('/delete/{id}', [MenuController::class, 'destroySubmenu']);
     });
     
 });
