@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FacilityController;
+use App\Http\Controllers\ImageController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RoomController;
@@ -57,6 +58,11 @@ Route::middleware(['auth:sanctum', 'role:OWNER|ADMIN'])->group(function () {
         Route::put('/update/{id}', 'updateFacility');
         Route::delete('/delete/{id}', 'destroyFacility');
         Route::get('/search/{propertyId}', 'searchFacility');
+    });
+
+    Route::prefix('/image')->controller(ImageController::class)->group(function () {
+        Route::post('/upload', 'uploadImage');
+        Route::delete('/delete/{id}', 'destroyImage');
     });
 });
 
