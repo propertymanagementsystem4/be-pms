@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('id_customer_data')->primary();
             $table->uuid('reservation_id');
             $table->string('fullname');
+            $table->string('email');
             $table->string('nik');
             $table->dateTime('birth_date');
             $table->timestamps();

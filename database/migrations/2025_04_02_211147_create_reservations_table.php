@@ -13,16 +13,16 @@ return new class extends Migration
     {
         Schema::create('Reservation', function (Blueprint $table) {
             $table->uuid('id_reservation')->primary();
-            $table->uuid('property_id');
-            $table->uuid('admin_id');
             $table->uuid('customer_id');
+            $table->uuid('admin_id');
+            $table->uuid('property_id');
             $table->dateTime('check_in_date');
             $table->dateTime('check_out_date');
+            $table->string('invoice_number')->unique();
+            $table->integer('total_guest');
             $table->double('total_price');
             $table->string('payment_status');
             $table->string('reservation_status');
-            $table->integer('total_guest');
-            $table->string('invoice_number')->unique();
             $table->timestamps();
 
             $table->foreign('property_id')->references('id_property')->on('Property')->onDelete('cascade')->onUpdate('cascade');
