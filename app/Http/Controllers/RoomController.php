@@ -47,23 +47,33 @@ class RoomController extends Controller
                 return $this->notFoundResponse('Property not found for this type');
             }
 
+            $property = $type->property;
             $propertyCode = $type->property->property_code;
+            $createdRooms = [];
 
-            $roomCode = CodeGeneratorService::generateRoomCode($propertyCode);
-            
-            if (Room::where('room_code', $roomCode)->exists()) {
-                return $this->errorResponse('Room code already exists', 422);
+            foreach ($request->rooms as $roomData) {
+                // Generate unique room code
+                $roomCode = CodeGeneratorService::generateRoomCode($propertyCode);
+    
+                // Ensure code is unique
+                while (Room::where('room_code', $roomCode)->exists()) {
+                    $roomCode = CodeGeneratorService::generateRoomCode($propertyCode);
+                }
+    
+                $room = Room::create([
+                    'id_room' => Str::uuid(),
+                    'type_id' => $request->type_id,
+                    'name' => $roomData['name'],
+                    'description' => $roomData['description'],
+                    'room_code' => $roomCode,
+                ]);
+    
+                $createdRooms[] = $room;
             }
 
-            $room = Room::create([
-                'id_room' => Str::uuid(),
-                'type_id' => $request->type_id,
-                'name' => $request->name,
-                'description' => $request->description,
-                'room_code' => $roomCode,
-            ]);
+            $property->increment('total_rooms', count($createdRooms));
     
-            return $this->successResponse(200, $room, 'Room created successfully');
+            return $this->successResponse(200, $createdRooms, 'Room created successfully');
         } catch (\Exception $e) {
             Log::error('Failed to store room: ' . $e->getMessage());
             return $this->internalErrorResponse('Failed to store room');

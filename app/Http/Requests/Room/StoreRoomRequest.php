@@ -25,8 +25,9 @@ class StoreRoomRequest extends FormRequest
     {
         return [
             'type_id' => 'required|uuid|exists:Type,id_type',
-            'name' => 'required|string|max:255',
-            'description' => 'required|string|max:255',
+            'rooms' => 'required|array|min:1',
+            'rooms.*.name' => 'required|string|max:255|distinct',
+            'rooms.*.description' => 'required|string|max:255',
         ];
     }
 
