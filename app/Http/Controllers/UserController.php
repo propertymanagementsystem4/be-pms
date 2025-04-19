@@ -47,7 +47,9 @@ class UserController extends Controller
             }
 
             $user->fullname = $request->input('fullname');
+            $user->password = bcrypt($request->input('password'));
             $user->phone_number = $request->input('phone_number');
+            
             $user->save();
 
             return $this->successResponse(200, $user, 'Profile updated successfully');
