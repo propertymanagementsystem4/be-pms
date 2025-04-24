@@ -347,6 +347,7 @@ class PropertyController extends Controller
 
                 return [
                     'id_property' => $property->id_property,
+                    'property_code' => $property->property_code,
                     'name' => $property->name,
                     'location' => $property->location,
                     'image_url' => $property->images->pluck('img_url')->first(),
