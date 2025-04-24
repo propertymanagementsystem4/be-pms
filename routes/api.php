@@ -6,6 +6,7 @@ use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\TypeController;
 use App\Http\Controllers\UserController;
@@ -64,10 +65,22 @@ Route::middleware(['auth:sanctum', 'role:OWNER|ADMIN'])->group(function () {
         Route::post('/upload', 'uploadImage');
         Route::delete('/delete/{id}', 'destroyImage');
     });
+
+    Route::prefix('/reservation')->controller(ReservationController::class)->group(function () {
+        Route::get('/list-available', 'getAvailablePropertiesAndRooms');
+        Route::get('/list', 'getAllReservations');
+        Route::get('/detail', 'getDetailReservation');
+        Route::post('/create', 'storeReservation');
+        Route::post('/create-guest', 'storeReservationDirectWhatsApp');
+        Route::put('/update', 'updateReservation');
+    });
 });
 
 // ROUTE OWNER ONLY
 Route::middleware(['auth:sanctum', 'role:OWNER'])->group(function () {
+
+    //Revenue
+    
     Route::prefix('/property-owner')->controller(PropertyController::class)->group(function () {
         Route::get('/list', 'getAllProperty');
         Route::post('/create', 'storeProperty');

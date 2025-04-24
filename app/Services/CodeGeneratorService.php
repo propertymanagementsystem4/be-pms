@@ -28,4 +28,12 @@ class CodeGeneratorService
         return "{$propertyCode}-FAC{$random}{$timestamp}";
     }
 
+    public static function generateInvoiceNumber(string $propertyCode): string
+    {
+        $date = now()->format('Ymd');
+        $random = str_pad(random_int(0, 99), 2, '0', STR_PAD_LEFT);
+        $timestamp = substr((string) now()->getTimestampMs(), -2);
+
+        return "INV-{$propertyCode}-{$date}{$random}{$timestamp}";
+    }
 }
