@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\MenuController;
@@ -73,6 +74,10 @@ Route::middleware(['auth:sanctum', 'role:OWNER|ADMIN'])->group(function () {
         Route::post('/create', 'storeReservation');
         Route::post('/create-guest', 'storeReservationDirectWhatsApp');
         Route::put('/update', 'updateReservation');
+    });
+
+    Route::prefix('/dashboard')->controller(DashboardController::class)->group(function () {
+        Route::get('/', 'index');
     });
 });
 
