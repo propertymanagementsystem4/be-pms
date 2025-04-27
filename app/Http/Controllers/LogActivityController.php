@@ -74,13 +74,13 @@ class LogActivityController extends Controller
                 // Special verb for image (if action == created => uploaded)
                 $imageAction = $action === 'created' ? 'uploaded' : $action;
 
-                $description = "User {$performedBy} {$imageAction} Image {$imgFilename} pada {$date}";
+                $description = "{$performedBy} {$imageAction} Image {$imgFilename} pada {$date}";
             } else {
                 $oldData = $this->safeJsonDecode($log->old_data);
                 $newData = $this->safeJsonDecode($log->new_data);
                 $itemName = $newData['name'] ?? $oldData['name'] ?? '(no name)';
 
-                $description = "User {$performedBy} {$action} {$module} {$itemName} pada {$date}";
+                $description = "{$performedBy} {$action} {$module} {$itemName} pada {$date}";
             }
 
             return [
