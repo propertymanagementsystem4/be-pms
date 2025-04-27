@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\LogActivityController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ReservationController;
@@ -118,6 +119,10 @@ Route::middleware(['auth:sanctum', 'role:OWNER'])->group(function () {
         Route::put('/update/{id}', 'updateSubmenu');
         Route::delete('/delete/{id}', 'destroySubmenu');
     });
+
+    Route::prefix('/log-activity-owner')->controller(LogActivityController::class)->group(function () {
+        Route::get('/', 'getAllLogActivity');
+    });
     
 });
 
@@ -129,6 +134,10 @@ Route::middleware(['auth:sanctum', 'role:ADMIN'])->group(function () {
         Route::get('/detail/by-code/{adminId}/{code}', 'getDetailPropertyByCodeManagedByAdmin');
         Route::put('/update/{adminId}/{propertyId}', 'updatePropertyManageByAdmin');
         Route::get('/search/{adminId}', 'searchPropertyManagedByAdmin');
+    });
+
+    Route::prefix('/log-activity-admin')->controller(LogActivityController::class)->group(function () {
+        Route::get('/', 'getLogActivityByUser');
     });
 
 });

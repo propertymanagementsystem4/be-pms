@@ -216,7 +216,9 @@ class PropertyController extends Controller
                 return $this->notFoundResponse('Property IDs not found: ' . implode(', ', $notFoundIds));
             }
             
-            Property::whereIn('id_property', $ids)->delete();
+            Property::whereIn('id_property', $ids)->get()->each(function ($property) {
+                $property->delete();
+            });
 
             return $this->successResponse(200, null, 'Properties deleted successfully');
         } catch (\Exception $e) {
