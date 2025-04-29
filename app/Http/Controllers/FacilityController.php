@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Facility\DeleteFacilityRequest;
 use App\Http\Requests\Facility\StoreFacilityRequest;
 use App\Http\Requests\Facility\UpdateFacilityRequest;
 use App\Models\Facility;
 use App\Models\Property;
 use App\Services\CodeGeneratorService;
 use App\Traits\ApiResponse;
+use App\Traits\LogActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class FacilityController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, LogActivity;
 
     public function getAllFacility()
     {
@@ -68,6 +70,13 @@ class FacilityController extends Controller
                 'price' => $request->price,
                 'facility_code' => $facilityCode,
             ]);
+
+            $this->logActivity(
+                propertyId: $request->property_id,
+                module: 'Facility',
+                action: 'Created',
+                newData: $facility->toArray(),
+            );
     
             return $this->successResponse(201, $facility, 'Facility created successfully');
         } catch (\Exception $e) {
@@ -108,6 +117,15 @@ class FacilityController extends Controller
             }
 
             $facility->update($request->validated());
+
+            $this->logActivity(
+                propertyId: $facility->property_id,
+                module: 'Facility',
+                action: 'Updated',
+                oldData: $facility->getOriginal(),
+                newData: $facility->toArray(),
+            );
+
             return $this->successResponse(200, $facility, 'Facility updated successfully');
         } catch (\Exception $e) {
             Log::error('Failed to update facility: ' . $e->getMessage());
@@ -115,19 +133,34 @@ class FacilityController extends Controller
         }
     }
 
-    public function destroyFacility($id)
+    public function destroyFacility(DeleteFacilityRequest $request)
     {
         try {
-            if (!Str::isUuid($id)) {
-                return $this->badRequestResponse(400, 'Invalid facility ID format');
+            $facilityIds = $request->validated()['facility_ids'];
+
+            foreach ($facilityIds as $id) {
+                if (!Str::isUuid($id)) {
+                    return $this->badRequestResponse(400, 'Invalid facility ID format');
+                }
             }
 
-            $facility = Facility::find($id);
-            if (!$facility) {
-                return $this->notFoundResponse('Facility not found');
+            $existingFacilities = Facility::whereIn('id_facility', $facilityIds)->pluck('id_facility')->toArray();
+            $notFoundIds = array_diff($facilityIds, $existingFacilities);
+            if (count($notFoundIds)) {
+                return $this->notFoundResponse('Facility IDs not found: ' . implode(', ', $notFoundIds));
             }
 
-            $facility->delete();
+            Facility::whereIn('id_facility', $facilityIds)->get()->each(function ($facility) {
+                $facility->delete();
+                
+                $this->logActivity(
+                    propertyId: $facility->property_id,
+                    module: 'Facility',
+                    action: 'Deleted',
+                    oldData: $facility->toArray(),
+                );
+            });
+            
             return $this->successResponse(200, null, 'Facility deleted successfully');
         } catch (\Exception $e) {
             Log::error('Failed to delete facility: ' . $e->getMessage());

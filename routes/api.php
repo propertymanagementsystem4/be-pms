@@ -40,7 +40,7 @@ Route::middleware(['auth:sanctum', 'role:OWNER|ADMIN'])->group(function () {
         Route::post('/create', 'storeType');
         Route::get('/detail/{id}', 'getDetailType');
         Route::put('/update/{id}', 'updateType');
-        Route::delete('/delete/{id}', 'destroyType');
+        Route::delete('/delete', 'destroyType');
         Route::get('/search/{propertyId}', 'searchType');
     });
 
@@ -49,7 +49,7 @@ Route::middleware(['auth:sanctum', 'role:OWNER|ADMIN'])->group(function () {
         Route::post('/create', 'storeRoom');
         Route::get('/detail/{id}', 'getDetailRoom');
         Route::put('/update/{id}', 'updateRoom');
-        Route::delete('/delete/{id}', 'destroyRoom');
+        Route::delete('/delete', 'destroyRoom');
         Route::get('/search/{propertyId}', 'searchRoom');
     });
 
@@ -59,7 +59,7 @@ Route::middleware(['auth:sanctum', 'role:OWNER|ADMIN'])->group(function () {
         Route::post('/create', 'storeFacility');
         Route::get('/detail/{id}', 'getDetailFacility');
         Route::put('/update/{id}', 'updateFacility');
-        Route::delete('/delete/{id}', 'destroyFacility');
+        Route::delete('/delete', 'destroyFacility');
         Route::get('/search/{propertyId}', 'searchFacility');
     });
 

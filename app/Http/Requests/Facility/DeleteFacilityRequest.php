@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Facility;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class LogActivityFilterRequest extends FormRequest
+class DeleteFacilityRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,19 +24,20 @@ class LogActivityFilterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'start_date' => 'nullable|date|before_or_equal:end_date',
-            'end_date'   => 'nullable|date|after_or_equal:start_date',
-            'property_id' => 'nullable|uuid',
+            'facility_ids' => 'required|array|min:1',
+            'facility_ids.*' => [
+                'required',
+                'uuid',
+                'exists:Facility,id_facility',
+            ],
         ];
     }
 
     public function attributes()
     {
         return [
-            'start_date.date' => 'Start date must be a valid date.',
-            'end_date.date'   => 'End date must be a valid date.',
-            'start_date.before_or_equal' => 'Start date must be before or the same as end date.',
-            'end_date.after_or_equal' => 'End date must be after or the same as start date.',
+            'facility_ids' => 'Facility IDs',
+            'facility_ids.*' => 'Facility ID',
         ];
     }
 
@@ -44,7 +45,7 @@ class LogActivityFilterRequest extends FormRequest
     {
         throw new HttpResponseException(response()->json([
             'statusCode' => 422,
-            'message' => 'Validation Error',
+            'message' => 'Validation error',
             'errors' => $validator->errors(),
         ], 422));
     }

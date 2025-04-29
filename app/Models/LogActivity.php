@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LogActivity extends Model
 {
@@ -14,19 +15,23 @@ class LogActivity extends Model
     public $incrementing = false;
     protected $keyType = 'string';
     protected $fillable = [
-        'system_logable_id',
-        'system_logable_type',
+        'id_log_activity',
         'user_id',
-        'guest_name',
+        'property_id',
         'module_name',
         'action',
         'old_data',
         'new_data',
-        'ip_address',
+        'date',
     ];
 
     protected $casts = [
         'old_data' => 'array',
         'new_data' => 'array',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id_user');
+    }
 }

@@ -3,14 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LogActivityFilterRequest;
-use App\Models\Image;
 use App\Models\LogActivity;
-use App\Models\Reservation;
-use App\Models\User;
 use App\Traits\ApiResponse;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class LogActivityController extends Controller
 {
@@ -18,69 +13,54 @@ class LogActivityController extends Controller
 
     public function getAllLogActivity(LogActivityFilterRequest $request)
     {
-        $logs = LogActivity::query();
+        $logs = LogActivity::with('user')
+            ->when($request->property_id, fn($query) => $query->where('property_id', $request->property_id))
+            ->when($request->start_date, fn($query) => $query->whereDate('date', '>=', $request->start_date))
+            ->when($request->end_date, fn($query) => $query->whereDate('date', '<=', $request->end_date))
+            ->orderBy('date', 'asc')
+            ->latest()
+            ->get();
 
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $logs->whereBetween('date', [$request->start_date, $request->end_date]);
-        }
-
-        $logs = $logs->latest()->get();
-
-        $formattedLogs = $this->formatLogs($logs);
-
-        return $this->successResponse(200, $formattedLogs, 'All log activities retrieved successfully');
+        return $this->successResponse(200, $this->formatLogs($logs), 'Log activity fetched successfully');
     }
 
     public function getLogActivityByUser(LogActivityFilterRequest $request)
     {
-        $userId = auth()->id();
+        $logs = LogActivity::with('user')
+            ->where('user_id', auth()->id())
+            ->when($request->property_id, fn($query) => $query->where('property_id', $request->property_id))
+            ->when($request->start_date, fn($query) => $query->whereDate('date', '>=', $request->start_date))
+            ->when($request->end_date, fn($query) => $query->whereDate('date', '<=', $request->end_date))
+            ->orderBy('date', 'asc')
+            ->latest()
+            ->get();
 
-        $logs = LogActivity::where('user_id', $userId);
-
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $logs->whereBetween('date', [$request->start_date, $request->end_date]);
-        }
-
-        $logs = $logs->latest()->get();
-
-        $formattedLogs = $this->formatLogs($logs);
-
-        return $this->successResponse(200, $formattedLogs, 'User log activities retrieved successfully');
+        return $this->successResponse(200, $this->formatLogs($logs), 'User log activity fetched successfully');
     }
 
     protected function formatLogs($logs)
     {
         return $logs->map(function ($log) {
-            $user = User::find($log->user_id);
-            $performedBy = $user->fullname ?? 'Unknown User';
-
-            $date = $log->date ? Carbon::parse($log->date)->translatedFormat('d F Y H:i') : null;
-
-            $action = Str::lower($log->action);
+            $userName = $log->user->fullname ?? 'Unknown User';
+            $action = $log->action;
             $module = $log->module_name;
-            $description = '';
+            $date = $log->date ? Carbon::parse($log->date)->translatedFormat('d F Y H:i') : null;
+            $newData = $log->new_data;
+            $oldData = $log->old_data;
 
-            if ($module === 'Reservation') {
-                $reservation = Reservation::find($log->system_logable_id);
-                $invoiceNumber = $reservation?->invoice_number ?? '(no invoice)';
-                $description = "{$performedBy} {$action} Reservation with invoice number {$invoiceNumber} pada {$date}";
-            } elseif ($module === 'Image') {
-                $image = Image::find($log->system_logable_id);
-                $imgUrl = $image?->img_url ?? '(no image url)';
-
-                // Get only filename from imgUrl
-                $imgFilename = $imgUrl ? basename($imgUrl) : '(no image url)';
-
-                // Special verb for image (if action == created => uploaded)
-                $imageAction = $action === 'created' ? 'uploaded' : $action;
-
-                $description = "{$performedBy} {$imageAction} Image {$imgFilename} pada {$date}";
-            } else {
-                $oldData = $this->safeJsonDecode($log->old_data);
-                $newData = $this->safeJsonDecode($log->new_data);
-                $itemName = $newData['name'] ?? $oldData['name'] ?? '(no name)';
-
-                $description = "{$performedBy} {$action} {$module} {$itemName} pada {$date}";
+            switch ($module) {
+                case 'Reservation':
+                    $invoiceNumber = $newData['invoice_number'] ?? 'N/A';
+                    $description = "$userName $action $module with invoice number $invoiceNumber at $date";
+                    break;
+                case 'Image':
+                    $imageName = $newData['img_url'] ?? $oldData['img_url'] ?? 'unknown image';
+                    $description = "$userName $action $module $imageName at $date";
+                    break;
+                default:
+                    $name = $newData['name'] ?? $oldData['name'] ?? 'unknown';
+                    $description = "$userName $action $module $name at $date";
+                    break;
             }
 
             return [
@@ -88,18 +68,5 @@ class LogActivityController extends Controller
                 'description' => $description,
             ];
         });
-    }
-
-    protected function safeJsonDecode($data)
-    {
-        if (!$data) return [];
-
-        $decoded = json_decode($data, true);
-
-        if (is_string($decoded)) {
-            $decoded = json_decode($decoded, true);
-        }
-
-        return is_array($decoded) ? $decoded : [];
     }
 }

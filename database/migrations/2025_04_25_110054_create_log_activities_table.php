@@ -13,17 +13,16 @@ return new class extends Migration
     {
         Schema::create('LogActivity', function (Blueprint $table) {
             $table->uuid('id_log_activity')->primary();
-            $table->uuid(('system_logable_id'));
-            $table->string('system_logable_type');
             $table->uuid('user_id');
-            $table->string('guard_name');
+            $table->uuid('property_id')->nullable();
             $table->string('module_name');
             $table->string('action');
             $table->json('old_data')->nullable();
             $table->json('new_data')->nullable();
-            $table->string('ip_address')->nullable();
             $table->dateTime('date');
             $table->timestamps();
+
+            $table->foreign('user_id')->references('id_user')->on('user')->onDelete('cascade');
         });
     }
 

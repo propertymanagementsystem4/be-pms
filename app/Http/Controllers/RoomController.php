@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Room\DeleteRoomRequest;
 use App\Http\Requests\Room\StoreRoomRequest;
 use App\Http\Requests\Room\UpdateRoomRequest;
 use App\Models\Room;
 use App\Models\Type;
 use App\Services\CodeGeneratorService;
 use App\Traits\ApiResponse;
+use App\Traits\LogActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class RoomController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, LogActivity;
 
     public function getRoomByPropertyId($propertyId)
     {
@@ -67,6 +69,13 @@ class RoomController extends Controller
                     'description' => $roomData['description'],
                     'room_code' => $roomCode,
                 ]);
+
+                $this->logActivity(
+                    propertyId: $type->property->id_property,
+                    module: 'Room',
+                    action: 'Created',
+                    newData: $room->toArray(),
+                );
     
                 $createdRooms[] = $room;
             }
@@ -106,12 +115,21 @@ class RoomController extends Controller
                 return $this->badRequestResponse(400, 'Invalid room ID format');
             }
 
-            $room = Room::find($id);
+            $room = Room::find($id)->with('type')->first();
             if (!$room) {
                 return $this->notFoundResponse('Room not found');
             }
 
             $room->update($request->validated());
+
+            $this->logActivity(
+                propertyId: $room->type->property_id,
+                module: 'Room',
+                action: 'Updated',
+                oldData: $room->getOriginal(),
+                newData: $room->toArray(),
+            );
+
             return $this->successResponse(200, $room, 'Room updated successfully');
         } catch (\Exception $e) {
             Log::error('Failed to update room: ' . $e->getMessage());
@@ -119,21 +137,35 @@ class RoomController extends Controller
         }
     }
 
-    public function destroyRoom($id)
+    public function destroyRoom(DeleteRoomRequest $request)
     {
+        $roomIds = $request->validated()['room_ids'];
+
         try {
-            if (!Str::isUuid($id)) {
-                return $this->badRequestResponse(400, 'Invalid room ID format');
+            foreach ($roomIds as $id) {
+                if (!Str::isUuid($id)) {
+                    return $this->badRequestResponse(400, 'Invalid room ID format');
+                }
             }
 
-            $room = Room::find($id);
-            if (!$room) {
-                return $this->notFoundResponse('Room not found');
+            $existingRooms = Room::whereIn('id_room', $roomIds)->pluck('id_room')->toArray();
+            $notFoundIds = array_diff($roomIds, $existingRooms);
+            if (count($notFoundIds)) {
+                return $this->notFoundResponse('Room IDs not found: ' . implode(', ', $notFoundIds));
             }
 
-            $room->delete();
+            Room::whereIn('id_room', $roomIds)->get()->each(function ($room) {
+                $room->delete();
+
+                $this->logActivity(
+                    propertyId: $room->type->property_id,
+                    module: 'Room',
+                    action: 'Deleted',
+                    oldData: $room->toArray(),
+                );
+            });
+
             return $this->successResponse(200, null, 'Room deleted successfully');
-
         } catch (\Exception $e) {
             Log::error('Failed to delete room: ' . $e->getMessage());
             return $this->internalErrorResponse('Failed to delete room');

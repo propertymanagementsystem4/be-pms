@@ -11,6 +11,7 @@ use App\Models\PropertyManager;
 use App\Models\Type;
 use App\Services\CodeGeneratorService;
 use App\Traits\ApiResponse;
+use App\Traits\LogActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,7 @@ use Illuminate\Support\Str;
 
 class PropertyController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, LogActivity;
 
     // OWNER
     public function getAllProperty(Request $request)
@@ -93,6 +94,13 @@ class PropertyController extends Controller
                 'province' => $request->province,
             ]);
 
+            $this->logActivity(
+                propertyId: $property->id_property,
+                module: 'Property',
+                action: 'Created',
+                newData: $property->toArray(),
+            );
+
             $typesData = [];
             foreach ($request->types as $type) {
                 $typesData[] = [
@@ -106,6 +114,15 @@ class PropertyController extends Controller
             }
 
             Type::insert($typesData);
+
+            foreach ($typesData as $typeData) {
+                $this->logActivity(
+                    propertyId: $property->id_property,
+                    module: 'Type',
+                    action: 'Created',
+                    newData: $typeData,
+                );
+            }            
     
             return $this->successResponse(201, $property, 'Property created successfully');
         } catch (\Exception $e) {
@@ -191,6 +208,14 @@ class PropertyController extends Controller
             }
 
             $property->update($request->validated());
+
+            $this->logActivity(
+                propertyId: $property->id_property,
+                module: 'Property',
+                action: 'Updated',
+                oldData: $property->getOriginal(),
+                newData: $property->getChanges(),
+            );
             return $this->successResponse(200, $property, 'Property updated successfully');
         } catch (\Exception $e) {
             Log::error('Failed to update property: ' . $e->getMessage());
@@ -218,6 +243,13 @@ class PropertyController extends Controller
             
             Property::whereIn('id_property', $ids)->get()->each(function ($property) {
                 $property->delete();
+                
+                $this->logActivity(
+                    propertyId: $property->id_property,
+                    module: 'Property',
+                    action: 'Deleted',
+                    oldData: $property->toArray(),
+                );
             });
 
             return $this->successResponse(200, null, 'Properties deleted successfully');
@@ -519,6 +551,14 @@ class PropertyController extends Controller
 
             $property = Property::find($propertyId);
             $property->update($request->validated());
+
+            $this->logActivity(
+                propertyId: $property->id_property,
+                module: 'Property',
+                action: 'Updated',
+                oldData: $property->getOriginal(),
+                newData: $property->getChanges(),
+            );
 
             return $this->successResponse(200, $property, 'Property updated successfully');
         } catch (\Exception $e) {

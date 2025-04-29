@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Image\UploadImageRequest;
 use App\Models\Image;
+use App\Models\Reservation;
+use App\Models\Room;
 use App\Traits\ApiResponse;
+use App\Traits\LogActivity;
 use Illuminate\Support\Facades\DB;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Support\Facades\Log;
@@ -12,7 +15,7 @@ use Illuminate\Support\Str;
 
 class ImageController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, LogActivity;
 
     public function uploadProfilePicture($newImage, $oldImageUrl = null)
     {
@@ -71,13 +74,24 @@ class ImageController extends Controller
                     'quality' => 'auto',
                 ]);
     
-                $uploadedImages[] = Image::create([
+                $image = Image::create([
                     'id_image' => Str::uuid(),
                     'property_id' => $request->property_id,
                     'room_id' => $request->room_id,
                     'reservation_id' => $request->reservation_id,
                     'img_url' => $uploaded['secure_url'],
                 ]);
+
+                $uploadedImages[] = $image;
+
+                if(!$request->reservation_id) {
+                    $this->logActivity(
+                        propertyId: $this->getPropertyIdForImage($request),
+                        module: 'Image',
+                        action: 'Uploaded',
+                        newData: $image->toArray(),
+                    );
+                }
             }
 
             DB::commit();
@@ -105,6 +119,13 @@ class ImageController extends Controller
             ]);
 
             $image->delete();
+
+            $this->logActivity(
+                propertyId: $this->getPropertyIdForImage($image),
+                module: 'Image',
+                action: 'Deleted',
+                oldData: $image->toArray(),
+            );
 
             DB::commit();
 
@@ -142,4 +163,22 @@ class ImageController extends Controller
         $filename = end($parts);
         return pathinfo($filename, PATHINFO_FILENAME);
     }
+
+    private function getPropertyIdForImage($request)
+    {
+        if ($request->property_id) return $request->property_id;
+
+        if ($request->room_id) {
+            $room = Room::with('type')->find($request->room_id);
+            return $room?->type?->property_id;
+        }
+
+        if ($request->reservation_id) {
+            $reservation = Reservation::with('property')->find($request->reservation_id);
+            return $reservation?->property_id;
+        }
+
+        return null; // fallback, or throw exception if critical
+    }
+
 }

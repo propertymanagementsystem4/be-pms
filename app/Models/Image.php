@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Traits\LogActivity;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Image extends Model
 {
-    use HasFactory, HasUuids, LogActivity;
+    use HasFactory, HasUuids;
 
     protected $table = 'Image';
     protected $primaryKey = 'id_image';
