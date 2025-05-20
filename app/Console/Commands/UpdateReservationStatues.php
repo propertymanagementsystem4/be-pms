@@ -32,11 +32,12 @@ class UpdateReservationStatues extends Command
 
         $updatedPending = Reservation::where('check_in_date', '<=', $currentDate)
             ->where('reservation_status', 'PENDING')
+            ->where('reservation_status', 'PENDING')
             ->update(['reservation_status' => 'CANCELLED']);
 
         $updatedConfirmed = Reservation::where('check_out_date', '<=', $currentDate)
-            ->where('reservation_status', 'CONFIRMED')
-            ->update(['reservation_status' => 'COMPLETED']);
+            ->where('reservation_status', 'CHECK-IN')
+            ->update(['reservation_status' => 'CHECK-OUT']);
 
         $total = $updatedPending + $updatedConfirmed;
 

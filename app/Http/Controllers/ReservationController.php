@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Reservation\CalculateTotalPriceRequest;
-use App\Http\Requests\Reservation\CreateReservationByWhatsappRequest;
 use App\Http\Requests\Reservation\CreateReservationRequest;
 use App\Http\Requests\Reservation\GetAvailablePropertiesRequest;
 use App\Http\Requests\Reservation\GetDetailReservationRequest;
 use App\Http\Requests\Reservation\UpdateReservationRequest;
+use App\Mail\ReservationConfirmedMail;
 use App\Models\CustomerData;
 use App\Models\Facility;
 use App\Models\FacilityReservationDetail;
@@ -19,9 +18,10 @@ use App\Models\User;
 use App\Services\CodeGeneratorService;
 use App\Traits\ApiResponse;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class ReservationController extends Controller
@@ -289,25 +289,20 @@ class ReservationController extends Controller
             return $this->badRequestResponse(400, 'Check in and check out date must be greater than or equal to the current date');
         }
 
+        $authUser = Auth::user();
+
         $propertyCode = $request->input('property_code');
-        $checkInDate = Carbon::parse($request->input('checkInDate'))->setTimeFrom(Carbon::now());
-        $checkOutDate = Carbon::parse($request->input('checkOutDate'))->setTimeFrom(Carbon::now());
         $totalGuest = $request->input('totalGuest');
         $roomsData = $request->input('rooms');
         $facilitiesData = $request->input('facilities', []);
         $customerData = $request->input('customerData');
-        $customerEmail = $request->input('customerEmail') ?? $customerData[0]['email'] ?? null;
+        $customerEmail = $authUser ? $authUser->email : $request->input('customerEmail');
         $currentUser = $request->user(); // Assuming you have authentication middleware
         $invoiceNumber = CodeGeneratorService::generateInvoiceNumber($propertyCode);
 
         DB::beginTransaction();
 
         try {
-            $findCustomer = null;
-            if ($customerEmail) {
-                $findCustomer = User::where('email', $customerEmail)->first();
-            }
-
             $property = Property::where('property_code', $propertyCode)->firstOrFail();
 
             $roomDetails = [];
@@ -323,11 +318,6 @@ class ReservationController extends Controller
                     'quantity' => 1, // Assuming quantity is always 1 in the request
                 ];
                 $totalRoomPrice += $totalPriceForThisRoom;
-
-                Log::info('Price per night: ' . $pricePerNight);
-                Log::info('Nights: ' . $nights);
-                Log::info('Total price for this room: ' . $totalPriceForThisRoom);
-                Log::info('Total room price: ' . $totalRoomPrice);
             }
 
             $facilityDetails = [];
@@ -350,14 +340,13 @@ class ReservationController extends Controller
             $reservation->check_in_date = $checkInDate;
             $reservation->check_out_date = $checkOutDate;
             $reservation->total_guest = $totalGuest;
-            $reservation->reservation_status = 'PENDING'; // Assuming these constants will be defined or used as strings
+            $reservation->reservation_status = 'PENDING';
             $reservation->payment_status = 'PENDING';
             $reservation->total_price = $totalRoomPrice + $totalFacilityPrice;
-            $reservation->customer_id = $findCustomer ? $findCustomer->id_user : null;
-            $reservation->admin_id = $currentUser ? $currentUser->id_user : null; // Assign admin if authenticated
+            $reservation->customer_id = $authUser ? $authUser->id_user : null;
+            $reservation->admin_id = $currentUser ? $currentUser->id_user : null;
             $reservation->property_id = $property->id_property;
             $reservation->save();
-            Log::info('Total price booked: ' . $reservation->total_price);
 
             foreach ($roomDetails as $detail) {
                 RoomReservationDetail::create([
@@ -384,7 +373,7 @@ class ReservationController extends Controller
                     'id_customer_data' => Str::uuid(),
                     'reservation_id' => $reservation->id_reservation,
                     'fullname' => $data['fullname'],
-                    'email' => $data['email'] ?? $customerEmail ?? null,
+                    'email' => $data['email'] ?? $customerEmail,
                     'nik' => $data['nik'] ?? null,
                     'birth_date' => isset($data['birth_date']) ? Carbon::parse($data['birth_date']) : null,
                 ]);
@@ -429,6 +418,9 @@ class ReservationController extends Controller
                         'payment_status' => 'PAID',
                         'reservation_status' => 'CONFIRMED',
                     ]);
+
+                    Mail::to($reservation->customerData->first()->email)->send(new ReservationConfirmedMail($reservation));
+                    
                     $message = "Reservation confirmed successfully for reservation ID: {$reservationId}";
                     break;
                 case 'CANCEL':
@@ -461,107 +453,4 @@ class ReservationController extends Controller
         }
     }
 
-    public function storeReservationDirectWhatsApp(CreateReservationByWhatsappRequest $request)
-    {
-        $propertyCode = $request->input('property_code');
-        $checkInDate = Carbon::parse($request->input('checkInDate'))->setTimeFrom(Carbon::now());
-        $checkOutDate = Carbon::parse($request->input('checkOutDate'))->setTimeFrom(Carbon::now());
-        $totalGuest = $request->input('totalGuest');
-        $roomsData = $request->input('rooms');
-        $facilitiesData = $request->input('facilities', []);
-        $customerData = $request->input('customerData');
-        $currentUser = $request->user(); // Assuming you have authentication middleware
-
-        try {
-            $property = Property::where('property_code', $propertyCode)
-                ->with('propertyManagers.user')
-                ->firstOrFail();
-
-            if (!$property) {
-                return $this->notFoundResponse('Property not found');
-            }
-
-            $roomsDetails = Room::whereIn('room_code', collect($roomsData)->pluck('room_code'))->get(['name', 'room_code']);
-            $facilitiesDetails = Facility::whereIn('facility_code', collect($facilitiesData)->pluck('facility_code'))->get(['name', 'facility_code']);
-
-            $message = $this->generateWhatsAppMessage([
-                'property' => $property,
-                'checkInDate' => $checkInDate,
-                'checkOutDate' => $checkOutDate,
-                'totalGuest' => $totalGuest,
-                'roomsData' => $roomsDetails,
-                'facilitiesData' => $facilitiesDetails,
-                'customerData' => $customerData,
-                'currentUser' => $currentUser,
-            ]);
-
-            $encodedMessage = urlencode($message);
-            $adminWhatsAppNumbers = $property->propertyManagers
-                ->map(function ($manager) {
-                    return optional($manager->user)->phone_number;
-                })
-                ->filter()
-                ->values();
-
-            if ($adminWhatsAppNumbers->isEmpty()) {
-                return $this->badRequestResponse(400, 'No admin with phone number found for this property.');
-            }
-
-            $whatsappNumber = $adminWhatsAppNumbers->isNotEmpty() ? $adminWhatsAppNumbers->random() : env('WHATSAPP_NUMBER');
-            $whatsappLink = "https://wa.me/{$whatsappNumber}?text={$encodedMessage}";
-
-            return $this->successResponse(200, ['whatsappLink' => $whatsappLink], 'WhatsApp link generated successfully');
-        } catch (\Exception $e) {
-            Log::error('Failed to create reservation direct whatsapp: ' . $e->getMessage());
-            return $this->internalErrorResponse('Failed to create reservation direct whatsapp');
-        }
-    }
-
-    private function generateWhatsAppMessage(array $data): string
-    {
-        $message = "*New Reservation Inquiry*\n\n";
-        $message .= "*Property:* {$data['property']->name} ({$data['property']->property_code})\n";
-        $message .= "*Check-in Date:* {$data['checkInDate']}\n";
-        $message .= "*Check-out Date:* {$data['checkOutDate']}\n";
-        $message .= "*Total Guests:* {$data['totalGuest']}\n\n";
-
-        if ($data['roomsData']->isNotEmpty()) {
-            $message .= "*Rooms:*\n";
-            foreach ($data['roomsData'] as $room) {
-                $message .= "- {$room->name} ({$room->room_code})\n";
-            }
-            $message .= "\n";
-        }
-
-        if ($data['facilitiesData']->isNotEmpty()) {
-            $message .= "*Facilities:*\n";
-            foreach ($data['facilitiesData'] as $facility) {
-                $message .= "- {$facility->name} ({$facility->facility_code})\n";
-            }
-            $message .= "\n";
-        }
-
-        if (!empty($data['customerData'])) {
-            $message .= "*Customer Details:*\n";
-            foreach ($data['customerData'] as $customer) {
-                $message .= "- Name: {$customer['fullname']}";
-                if (isset($customer['nik'])) {
-                    $message .= ", NIK: {$customer['nik']}";
-                }
-                if (isset($customer['birth_date'])) {
-                    $message .= ", Birth Date: {$customer['birth_date']}";
-                }
-                $message .= "\n";
-            }
-            $message .= "\n";
-        }
-
-        if ($data['currentUser']) {
-            $message .= "*Requested By:* {$data['currentUser']->fullname} ({$data['currentUser']->email})\n";
-        }
-
-        $message .= "\nPlease follow up with this inquiry.";
-
-        return $message;
-    }
 }
