@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('Reservation', function (Blueprint $table) {
             $table->uuid('id_reservation')->primary();
             $table->uuid('customer_id');
-            $table->uuid('admin_id');
             $table->uuid('property_id');
             $table->dateTime('check_in_date');
             $table->dateTime('check_out_date');
@@ -26,7 +25,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('property_id')->references('id_property')->on('Property')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreign('admin_id')->references('id_user')->on('User')->onUpdate('cascade');
             $table->foreign('customer_id')->references('id_user')->on('User')->onUpdate('cascade');
         });
     }

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('fullname');
             $table->string('email');
             $table->string('nik');
-            $table->dateTime('birth_date');
+            $table->dateTime('birth_date')->nullable();
             $table->timestamps();
 
             $table->foreign('reservation_id')->references('id_reservation')->on('Reservation')->onDelete('cascade')->onUpdate('cascade');
