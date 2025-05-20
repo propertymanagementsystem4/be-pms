@@ -14,6 +14,7 @@ use App\Http\Controllers\TypeController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
+// ROUTE PUBLIC
 Route::controller(AuthController::class)->group(function () {
     Route::post('/register', 'register');
     Route::get('/email/verify/{id}', 'verifyEmail')
@@ -21,6 +22,8 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('/email/resend', 'resendVerificationEmail');
     Route::post('/login', 'login');
 });
+
+Route::get('/getAvailablePropertiesAndRooms', [ReservationController::class, 'getAllProperty']);
 
 // ROUTE ALL ROLE
 Route::middleware('auth:sanctum')->group(function () {
@@ -31,10 +34,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/update/{id}', 'updateProfile');
     });
     
+    Route::get('/create', [ReservationController::class, 'storeReservation']);
 });
 
 // ROUTE OWNER AND ADMIN
 Route::middleware(['auth:sanctum', 'role:OWNER|ADMIN'])->group(function () {
+    Route::prefix('/menu')->controller(MenuController::class)->group(function () {
+        Route::get('/list', 'getAllMenu');
+        Route::get('/list-by-role', 'getMenuByRoleId');
+    });
+    
     Route::prefix('/type')->controller(TypeController::class)->group(function () {
         Route::get('/list/{propertyId}', 'getTypeByPropertyId');
         Route::post('/create', 'storeType');
@@ -69,11 +78,8 @@ Route::middleware(['auth:sanctum', 'role:OWNER|ADMIN'])->group(function () {
     });
 
     Route::prefix('/reservation')->controller(ReservationController::class)->group(function () {
-        Route::get('/list-available', 'getAvailablePropertiesAndRooms');
         Route::get('/list', 'getAllReservations');
         Route::get('/detail', 'getDetailReservation');
-        Route::post('/create', 'storeReservation');
-        Route::post('/create-guest', 'storeReservationDirectWhatsApp');
         Route::put('/update', 'updateReservation');
     });
 
@@ -106,8 +112,6 @@ Route::middleware(['auth:sanctum', 'role:OWNER'])->group(function () {
     });
 
     Route::prefix('/menu')->controller(MenuController::class)->group(function () {
-        Route::get('/list', 'getAllMenu');
-        Route::get('/list-by-role', 'getMenuByRoleId');
         Route::post('/create', 'storeMenu');
         Route::get('/detail/{id}', 'getMenuById');
         Route::put('/update/{id}', 'updateMenu');
