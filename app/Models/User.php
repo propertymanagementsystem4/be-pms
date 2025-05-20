@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Notifications\VerifyEmailNotification;
+use App\Mail\VerifyEmailMail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -108,9 +109,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ['id' => $this->id_user]
         );
 
-        Log::info('Verification URL: ' . $verifyUrl);
-
-        $this->notify(new VerifyEmailNotification($verifyUrl));
+        Mail::to($this->email)->send(new VerifyEmailMail($verifyUrl));
     }
 
 }
