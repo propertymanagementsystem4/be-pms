@@ -52,6 +52,7 @@ class PropertyController extends Controller
                     'location' => $property->location,
                     'city' => $property->city,
                     'province' => $property->province,
+                    'description' => $property->description,
                     'image_url' => $property->images->pluck('img_url')->first(),
                     'total_rooms' => $totalRooms,
                     'total_facilities' => $property->facilities_count,
@@ -145,7 +146,7 @@ class PropertyController extends Controller
                 },
                 'propertyManagers.user',
                 'images' => function ($query) {
-                    $query->select('property_id', 'img_url');
+                    $query->select('id_image', 'property_id', 'img_url');
                 }
             ])->find($propertyId);
 
@@ -159,7 +160,13 @@ class PropertyController extends Controller
                 'location' => $property->location,
                 'city' => $property->city,
                 'province' => $property->province,
-                'image_urls' => $property->images->pluck('img_url'),
+                'description' => $property->description,
+                'images' => $property->images->map(function ($image) {
+                    return [
+                        'id_image' => $image->id_image,
+                        'img_url' => $image->img_url,
+                    ];
+                }),
                 'total_rooms' => $property->types->flatMap(function ($type) {
                     return $type->rooms;
                 })->count(),
@@ -384,6 +391,9 @@ class PropertyController extends Controller
                     'property_code' => $property->property_code,
                     'name' => $property->name,
                     'location' => $property->location,
+                    'city' => $property->city,
+                    'province' => $property->province,
+                    'description' => $property->description,
                     'image_url' => $property->images->pluck('img_url')->first(),
                     'total_rooms' => $totalRooms,
                     'total_facilities' => $property->facilities_count
@@ -422,7 +432,7 @@ class PropertyController extends Controller
                         $query->select('id_facility', 'property_id', 'name', 'price');
                     },
                     'images' => function ($query) {
-                        $query->select('property_id', 'img_url');
+                        $query->select('id_image', 'property_id', 'img_url');
                     }
                 ])
                 ->first();
@@ -435,7 +445,15 @@ class PropertyController extends Controller
                 'id_property' => $property->id_property,
                 'name' => $property->name,
                 'location' => $property->location,
-                'image_urls' => $property->images->pluck('img_url'),
+                'city' => $property->city,
+                'province' => $property->province,
+                'description' => $property->description,
+                'images' => $property->images->map(function ($image) {
+                    return [
+                        'id_image' => $image->id_image,
+                        'img_url' => $image->img_url,
+                    ];
+                }),
                 'total_rooms' => $property->types->flatMap(function ($type) {
                     return $type->rooms;
                 })->count(),
